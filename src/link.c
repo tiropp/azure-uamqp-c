@@ -324,8 +324,10 @@ static void link_frame_received(void* context, AMQP_VALUE performative, uint32_t
                         {
                             if ((delivery_instance->delivery_id >= first) && (delivery_instance->delivery_id <= last))
                             {
+                                AMQP_VALUE in_place_delivery_state;
                                 AMQP_VALUE delivery_state;
-                                if (disposition_get_state(disposition, &delivery_state) != 0)
+                                if ((disposition_get_state(disposition, &in_place_delivery_state) != 0) ||
+                                    ((delivery_state = amqpvalue_clone(in_place_delivery_state)) == NULL))
                                 {
                                     /* error */
                                 }
