@@ -5,7 +5,12 @@ compileAsC99()
 
 add_executable(message_sender_sample
 	main.c)
-	
+
+IF( MSVC AND ${MSVC_VERSION} LESS 1600 )
+  SET_SOURCE_FILES_PROPERTIES(main.c PROPERTIES LANGUAGE CXX)
+ENDIF()
+
+
 #TODO: link to whatever else the platform has (now for windows it is just ws2_32)
 
 include_directories(.)
