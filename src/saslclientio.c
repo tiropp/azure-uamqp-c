@@ -866,7 +866,7 @@ static void on_sasl_frame_codec_error(void* context)
 
 CONCRETE_IO_HANDLE saslclientio_create(void* io_create_parameters)
 {
-    SASLCLIENTIO_CONFIG* sasl_client_io_config = io_create_parameters;
+    SASLCLIENTIO_CONFIG* sasl_client_io_config = (SASLCLIENTIO_CONFIG*)io_create_parameters;
     SASL_CLIENT_IO_INSTANCE* result;
 
     /* Codes_SRS_SASLCLIENTIO_01_005: [If xio_create_parameters is NULL, saslclientio_create shall fail and return NULL.] */
@@ -879,7 +879,7 @@ CONCRETE_IO_HANDLE saslclientio_create(void* io_create_parameters)
     }
     else
     {
-        result = amqpalloc_malloc(sizeof(SASL_CLIENT_IO_INSTANCE));
+        result = (SASL_CLIENT_IO_INSTANCE*)amqpalloc_malloc(sizeof(SASL_CLIENT_IO_INSTANCE));
         /* Codes_SRS_SASLCLIENTIO_01_006: [If memory cannot be allocated for the new instance, saslclientio_create shall fail and return NULL.] */
         if (result != NULL)
         {

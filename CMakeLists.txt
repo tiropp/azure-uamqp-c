@@ -51,6 +51,12 @@ else()
     option(use_wolfssl "set use_wolfssl to ON if wolfssl is to be used, set to OFF to not use wolfssl" OFF)
 endif()
 
+IF( MSVC AND ${MSVC_VERSION} LESS 1600 )
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3")
+  set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   /W3")
+  SET_SOURCE_FILES_PROPERTIES(src/amqp_definitions.c src/socket_listener_win32.c src/session.c src/saslclientio.c src/message_sender.c src/message_receiver.c src/connection.c src/cbs.c src/amqpvalue.c src/amqp_management.c src/amqpvalue_to_string.c src/frame_codec.c PROPERTIES LANGUAGE CXX)
+ENDIF()
+
 include(CheckSymbolExists)
 function(detect_architecture symbol arch) 
     if (NOT DEFINED ARCHITECTURE OR ARCHITECTURE STREQUAL "")
@@ -148,6 +154,7 @@ endif()
 if(WIN32)
     include_directories($ENV{OpenSSLDir}/include)
 endif()
+
 
 set(uamqp_h_files
     ./inc/azure_uamqp_c/amqp_definitions.h
