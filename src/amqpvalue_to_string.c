@@ -41,8 +41,8 @@ static int string_concat(char** string, const char* to_concat)
 
 		length += src_length;
 
-		char* new_string = realloc(*string, length);
-		if (new_string == NULL)
+        char* new_string = (char*)realloc(*string, length);
+        if (new_string == NULL)
 		{
 			result = __FAILURE__;
 		}

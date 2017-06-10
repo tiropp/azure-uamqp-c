@@ -3,17 +3,25 @@
 
 #include <stdlib.h>
 #include <string.h>
+#if MSVC_LESS_1600
+# if !defined(__STDC_LIMIT_MACROS)
+#   define __STDC_LIMIT_MACROS
+# endif
+# include <stdint.h>
+#endif
 #include "azure_c_shared_utility/optimize_size.h"
 #include "azure_c_shared_utility/gballoc.h"
 #include "azure_uamqp_c/session.h"
 #include "azure_uamqp_c/connection.h"
 #include "azure_c_shared_utility/xlogging.h"
 
+
+
 typedef struct LINK_ENDPOINT_INSTANCE_TAG
 {
 	char* name;
 	handle input_handle;
-	handle output_handle;
+    handle output_handle;
 	ON_ENDPOINT_FRAME_RECEIVED frame_received_callback;
 	ON_SESSION_STATE_CHANGED on_session_state_changed;
 	ON_SESSION_FLOW_ON on_session_flow_on;
@@ -620,8 +628,8 @@ SESSION_HANDLE session_create(CONNECTION_HANDLE connection, ON_LINK_ATTACHED on_
 	else
 	{
 		/* Codes_SRS_SESSION_01_030: [session_create shall create a new session instance and return a non-NULL handle to it.] */
-		result = malloc(sizeof(SESSION_INSTANCE));
-		/* Codes_SRS_SESSION_01_042: [If allocating memory for the session fails, session_create shall fail and return NULL.] */
+        result = (SESSION_INSTANCE*)malloc(sizeof(SESSION_INSTANCE));
+        /* Codes_SRS_SESSION_01_042: [If allocating memory for the session fails, session_create shall fail and return NULL.] */
 		if (result != NULL)
 		{
 			result->connection = connection;
@@ -673,8 +681,8 @@ SESSION_HANDLE session_create_from_endpoint(CONNECTION_HANDLE connection, ENDPOI
 	}
 	else
 	{
-		result = malloc(sizeof(SESSION_INSTANCE));
-		if (result != NULL)
+        result = (SESSION_INSTANCE*)malloc(sizeof(SESSION_INSTANCE));
+        if (result != NULL)
 		{
 			result->connection = connection;
 			result->link_endpoints = NULL;
@@ -987,9 +995,9 @@ LINK_ENDPOINT_HANDLE session_create_link_endpoint(SESSION_HANDLE session, const 
 			result->frame_received_callback = NULL;
 			result->callback_context = NULL;
 			result->output_handle = selected_handle;
-			result->input_handle = 0xFFFFFFFF;
-			result->name = malloc(strlen(name) + 1);
-			if (result->name == NULL)
+            result->input_handle = 0xFFFFFFFF;
+            result->name = (char*)malloc(strlen(name) + 1);
+            if (result->name == NULL)
 			{
 				/* Codes_SRS_SESSION_01_045: [If allocating memory for the link endpoint fails, session_create_link_endpoint shall fail and return NULL.] */
 				free(result);
@@ -1001,8 +1009,8 @@ LINK_ENDPOINT_HANDLE session_create_link_endpoint(SESSION_HANDLE session, const 
 				strcpy(result->name, name);
 				result->session = session;
 
-				new_link_endpoints = realloc(session_instance->link_endpoints, sizeof(LINK_ENDPOINT_INSTANCE*) * (session_instance->link_endpoint_count + 1));
-				if (new_link_endpoints == NULL)
+                new_link_endpoints = (LINK_ENDPOINT_INSTANCE**)realloc(session_instance->link_endpoints, sizeof(LINK_ENDPOINT_INSTANCE*) * (session_instance->link_endpoint_count + 1));
+                if (new_link_endpoints == NULL)
 				{
 					/* Codes_SRS_SESSION_01_045: [If allocating memory for the link endpoint fails, session_create_link_endpoint shall fail and return NULL.] */
                     free(result->name);

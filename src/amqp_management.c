@@ -648,7 +648,7 @@ int amqpmanagement_start_operation(AMQP_MANAGEMENT_HANDLE amqp_management, const
                 }
                 else
                 {
-                    OPERATION_MESSAGE_INSTANCE* pending_operation_message = malloc(sizeof(OPERATION_MESSAGE_INSTANCE));
+                    OPERATION_MESSAGE_INSTANCE* pending_operation_message = (OPERATION_MESSAGE_INSTANCE*)malloc(sizeof(OPERATION_MESSAGE_INSTANCE));
                     if (pending_operation_message == NULL)
                     {
                         result = __FAILURE__;
@@ -663,7 +663,7 @@ int amqpmanagement_start_operation(AMQP_MANAGEMENT_HANDLE amqp_management, const
 
                         amqp_management->next_message_id++;
 
-                        OPERATION_MESSAGE_INSTANCE** new_operation_messages = realloc(amqp_management->operation_messages, (amqp_management->operation_message_count + 1) * sizeof(OPERATION_MESSAGE_INSTANCE*));
+                        OPERATION_MESSAGE_INSTANCE** new_operation_messages = (OPERATION_MESSAGE_INSTANCE**)realloc(amqp_management->operation_messages, (amqp_management->operation_message_count + 1) * sizeof(OPERATION_MESSAGE_INSTANCE*));
                         if (new_operation_messages == NULL)
                         {
                             message_destroy(message);

@@ -2,6 +2,11 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 #include <stdlib.h>
+#if MSVC_LESS_1600
+# if !defined(__STDC_LIMIT_MACROS)
+#   define __STDC_LIMIT_MACROS
+# endif
+#endif
 #include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
@@ -941,8 +946,8 @@ AMQP_VALUE amqpvalue_create_string(const char* value)
 		if (result != NULL)
 		{
 			result->type = AMQP_TYPE_STRING;
-			result->value.string_value.chars = malloc(length + 1);
-			if (result->value.string_value.chars == NULL)
+            result->value.string_value.chars = (char*)malloc(length + 1);
+            if (result->value.string_value.chars == NULL)
 			{
 				/* Codes_SRS_AMQPVALUE_01_136: [If allocating the AMQP_VALUE fails then amqpvalue_create_string shall return NULL.] */
 				free(result);
@@ -2079,8 +2084,8 @@ AMQP_VALUE amqpvalue_clone(AMQP_VALUE value)
 		{
 			/* Codes_SRS_AMQPVALUE_01_258: [list] */
 			uint32_t i;
-			AMQP_VALUE_DATA* result_data = malloc(sizeof(AMQP_VALUE_DATA));
-			if (result_data == NULL)
+            AMQP_VALUE_DATA* result_data = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
+            if (result_data == NULL)
 			{
 				/* Codes_SRS_AMQPVALUE_01_236: [If creating the cloned value fails, amqpvalue_clone shall return NULL.] */
 				result = NULL;
@@ -2144,8 +2149,8 @@ AMQP_VALUE amqpvalue_clone(AMQP_VALUE value)
 		{
 			/* Codes_SRS_AMQPVALUE_01_259: [map] */
 			uint32_t i;
-			AMQP_VALUE_DATA* result_data = malloc(sizeof(AMQP_VALUE_DATA));
-			if (result_data == NULL)
+            AMQP_VALUE_DATA* result_data = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
+            if (result_data == NULL)
 			{
 				/* Codes_SRS_AMQPVALUE_01_236: [If creating the cloned value fails, amqpvalue_clone shall return NULL.] */
 				result = NULL;
@@ -2215,8 +2220,8 @@ AMQP_VALUE amqpvalue_clone(AMQP_VALUE value)
 		case AMQP_TYPE_ARRAY:
 		{
 			uint32_t i;
-			AMQP_VALUE_DATA* result_data = malloc(sizeof(AMQP_VALUE_DATA));
-			if (result_data == NULL)
+            AMQP_VALUE_DATA* result_data = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
+            if (result_data == NULL)
 			{
 				result = NULL;
 			}
@@ -2346,7 +2351,7 @@ static int output_bytes(AMQPVALUE_ENCODER_OUTPUT encoder_output, void* context, 
 	{
 		/* Codes_SRS_AMQPVALUE_01_267: [amqpvalue_encode shall pass the encoded bytes to the encoder_output function.] */
 		/* Codes_SRS_AMQPVALUE_01_268: [On each call to the encoder_output function, amqpvalue_encode shall also pass the context argument.] */
-		result = encoder_output(context, bytes, length);
+		result = encoder_output(context, (const unsigned char*)bytes, length);
 	}
 	else
 	{
@@ -3189,7 +3194,7 @@ int amqpvalue_encode(AMQP_VALUE value, AMQPVALUE_ENCODER_OUTPUT encoder_output, 
 			break;
 
 		case AMQP_TYPE_BINARY:
-			result = encode_binary(encoder_output, context, value_data->value.binary_value.bytes, value_data->value.binary_value.length);
+			result = encode_binary(encoder_output, context, (const unsigned char*)value_data->value.binary_value.bytes, value_data->value.binary_value.length);
 			break;
 
 		case AMQP_TYPE_STRING:
@@ -3360,9 +3365,9 @@ static void internal_decoder_destroy(INTERNAL_DECODER_DATA* internal_decoder)
 {
 	if (internal_decoder != NULL)
 	{
-		internal_decoder_destroy(internal_decoder->inner_decoder);
+        internal_decoder_destroy((INTERNAL_DECODER_DATA*)internal_decoder->inner_decoder);
 		free(internal_decoder);
-	}
+    }
 }
 
 static void inner_decoder_callback(void* context, AMQP_VALUE decoded_value)
@@ -3408,7 +3413,8 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 					internal_decoder_data->decoder_state = DECODER_STATE_ERROR;
 					result = __FAILURE__;
 					break;
-				case 0x00: /* descriptor */
+                case 0x00: /* descriptor */
+                {
 					internal_decoder_data->decode_to_value->type = AMQP_TYPE_DESCRIBED;
 					AMQP_VALUE_DATA* descriptor = (AMQP_VALUE_DATA*)malloc(sizeof(AMQP_VALUE_DATA));
 					if (descriptor == NULL)
@@ -3432,9 +3438,10 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 							internal_decoder_data->decode_value_state.described_value_state.described_value_state = DECODE_DESCRIBED_VALUE_STEP_DESCRIPTOR;
 							result = 0;
 						}
-					}
+                    }
+                    break;
+                }
 
-					break;
 
 				/* Codes_SRS_AMQPVALUE_01_329: [<encoding code="0x40" category="fixed" width="0" label="the null value"/>] */
 				case 0x40:
@@ -3786,7 +3793,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 					internal_decoder_data->decode_to_value->value.array_value.count = 0;
 					internal_decoder_data->decode_to_value->value.array_value.items = NULL;
 					internal_decoder_data->bytes_decoded = 0;
-					internal_decoder_data->decode_value_state.array_value_state.array_value_state = DECODE_ARRAY_STEP_SIZE;
+                    internal_decoder_data->decode_value_state.array_value_state.array_value_state = DECODE_ARRAY_STEP_SIZE;
 
 					result = 0;
 					break;
@@ -3814,7 +3821,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 					case DECODE_DESCRIBED_VALUE_STEP_DESCRIPTOR:
 					{
 						size_t inner_used_bytes;
-						if (internal_decoder_decode_bytes(internal_decoder_data->inner_decoder, buffer, size, &inner_used_bytes) != 0)
+                        if (internal_decoder_decode_bytes((INTERNAL_DECODER_DATA*)internal_decoder_data->inner_decoder, buffer, size, &inner_used_bytes) != 0)
 						{
 							result = __FAILURE__;
 						}
@@ -3861,7 +3868,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 					case DECODE_DESCRIBED_VALUE_STEP_VALUE:
 					{
 						size_t inner_used_bytes;
-						if (internal_decoder_decode_bytes(internal_decoder_data->inner_decoder, buffer, size, &inner_used_bytes) != 0)
+                        if (internal_decoder_decode_bytes((INTERNAL_DECODER_DATA*)internal_decoder_data->inner_decoder, buffer, size, &inner_used_bytes) != 0)
 						{
 							result = __FAILURE__;
 						}
@@ -4762,7 +4769,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 						{
 							result = __FAILURE__;
 						}
-						else if (internal_decoder_decode_bytes(internal_decoder_data->inner_decoder, buffer, size, &inner_used_bytes) != 0)
+                        else if (internal_decoder_decode_bytes((INTERNAL_DECODER_DATA*)internal_decoder_data->inner_decoder, buffer, size, &inner_used_bytes) != 0)
 						{
 							result = __FAILURE__;
 						}
@@ -4970,7 +4977,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 						{
 							result = __FAILURE__;
 						}
-						else if (internal_decoder_decode_bytes(internal_decoder_data->inner_decoder, buffer, size, &inner_used_bytes) != 0)
+                        else if (internal_decoder_decode_bytes((INTERNAL_DECODER_DATA*)internal_decoder_data->inner_decoder, buffer, size, &inner_used_bytes) != 0)
 						{
 							result = __FAILURE__;
 						}
@@ -5163,7 +5170,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 						{
 							result = __FAILURE__;
 						}
-						else if (internal_decoder_decode_bytes(internal_decoder_data->inner_decoder, buffer, size, &inner_used_bytes) != 0)
+                        else if (internal_decoder_decode_bytes((INTERNAL_DECODER_DATA*)internal_decoder_data->inner_decoder, buffer, size, &inner_used_bytes) != 0)
 						{
 							result = __FAILURE__;
 						}
@@ -5207,7 +5214,7 @@ int internal_decoder_decode_bytes(INTERNAL_DECODER_DATA* internal_decoder_data, 
 										}
 										else
 										{
-											if (internal_decoder_decode_bytes(internal_decoder_data->inner_decoder, &internal_decoder_data->decode_value_state.array_value_state.constructor_byte, 1, NULL) != 0)
+                                            if (internal_decoder_decode_bytes((INTERNAL_DECODER_DATA*)internal_decoder_data->inner_decoder, &internal_decoder_data->decode_value_state.array_value_state.constructor_byte, 1, NULL) != 0)
 											{
 												result = __FAILURE__;
 											}
