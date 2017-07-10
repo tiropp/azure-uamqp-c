@@ -60,6 +60,7 @@ else()
     option(use_openssl "set use_openssl to ON if openssl is to be used, set to OFF to not use openssl" ON)
     option(use_wolfssl "set use_wolfssl to ON if wolfssl is to be used, set to OFF to not use wolfssl" OFF)
 endif()
+option(use_openssl_11 "set use_openssl_11 to ON to use OpenSSL 1.1.x. Default OFF. Only relevant if the use_openssl option is set." OFF)
 
 IF( MSVC AND ${MSVC_VERSION} LESS 1600 )
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3")

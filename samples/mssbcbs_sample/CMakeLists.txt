@@ -24,8 +24,13 @@ if (WIN32)
 		target_link_libraries(mssbcbs_sample
 			$ENV{OpenSSLDir}/lib/ssleay32.lib $ENV{OpenSSLDir}/lib/libeay32.lib)
 	
+           if( ${use_openssl_11} )
+	        file(COPY $ENV{OpenSSLDir}/bin/libssl-1_1.dll    DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/Debug)
+		file(COPY $ENV{OpenSSLDir}/bin/libcrypto-1_1.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/Debug)
+           else()
 		file(COPY $ENV{OpenSSLDir}/bin/libeay32.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/Debug)
 		file(COPY $ENV{OpenSSLDir}/bin/ssleay32.dll DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/Debug)
+           endif()
 	endif()
 	if(${use_wolfssl})
 		target_link_libraries(mssbcbs_sample $ENV{WolfSSLDir}/Debug/wolfssl.lib)
